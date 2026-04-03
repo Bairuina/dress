@@ -10,6 +10,10 @@ class Settings(BaseSettings):
     mysql_user: str = "root"
     mysql_password: str = "123456"
     mysql_database: str = "dress"
+    redis_host: str = "127.0.0.1"
+    redis_port: int = 6379
+    redis_db: int = 0
+    redis_password: str | None = None
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
@@ -19,6 +23,11 @@ class Settings(BaseSettings):
             f"mysql+pymysql://{self.mysql_user}:{self.mysql_password}"
             f"@{self.mysql_host}:{self.mysql_port}/{self.mysql_database}?charset=utf8mb4"
         )
+
+    @property
+    def redis_url(self) -> str:
+        auth_part = f":{self.redis_password}@" if self.redis_password else ""
+        return f"redis://{auth_part}{self.redis_host}:{self.redis_port}/{self.redis_db}"
 
 
 settings = Settings()

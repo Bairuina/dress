@@ -1,0 +1,1 @@
+export { OutfitsPage } from './page';

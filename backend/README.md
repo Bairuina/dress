@@ -1,51 +1,68 @@
-# 后端学习说明
+# Backend Architecture
 
-这是一个适合前端转全栈入门的 `FastAPI + SQLAlchemy + MySQL` 后端骨架。
+This backend is a small FastAPI application designed to be easy to explain in a full-stack interview.
 
-## 目录说明
+## Layers
 
 ```text
 app/
-  api/        # 路由层：定义接口 URL、请求方式、返回值
-  core/       # 配置、异常等基础能力
-  crud/       # 数据库读写逻辑
-  db/         # 数据库连接与会话
-  models/     # SQLAlchemy 模型，对应数据库表
-  schemas/    # Pydantic 数据结构，对应请求体和响应体
-  main.py     # FastAPI 应用入口
+  api/       # HTTP layer: routes and request/response binding
+  core/      # configuration and shared exceptions
+  crud/      # database access only
+  db/        # engine and session management
+  models/    # SQLAlchemy models
+  schemas/   # Pydantic request/response schemas
+  services/  # business logic and orchestration
+  main.py    # application entrypoint
 ```
 
-## 建议你这样理解每一层
+## Responsibility Split
 
-- `models`
-  数据库表长什么样，就在这里定义。
-- `schemas`
-  接口入参和出参长什么样，就在这里定义。
-- `crud`
-  真正的数据库增删改查逻辑放这里。
 - `api/routes`
-  接口路由只负责收参数、调 CRUD、返回结果。
+  Accepts HTTP requests, validates inputs through schemas, and returns responses.
+- `services`
+  Contains business rules and coordinates CRUD calls.
+- `crud`
+  Talks to the database directly.
+- `models`
+  Defines table structures.
+- `schemas`
+  Defines the data shape of requests and responses.
 
-## 当前已有接口
+## Current Clothes Flow
 
-- `GET /health`
 - `GET /api/v1/clothes`
 - `GET /api/v1/clothes/{clothes_id}`
 - `POST /api/v1/clothes`
 - `PUT /api/v1/clothes/{clothes_id}`
 - `DELETE /api/v1/clothes/{clothes_id}`
 
-## 推荐学习顺序
+## Reading Order
 
-1. 先看 `app/main.py`
-2. 再看 `app/api/routes/clothes.py`
-3. 再看 `app/schemas/clothes.py`
-4. 再看 `app/models/clothes.py`
-5. 最后看 `app/crud/clothes.py`
+1. `app/main.py`
+2. `app/api/routes/clothes.py`
+3. `app/services/clothes.py`
+4. `app/crud/clothes.py`
+5. `app/models/clothes.py`
+6. `app/schemas/clothes.py`
 
-## 你现在缺的本地环境
+## Notes
 
-- Python
-- MySQL
+- Keep the current product scope unchanged.
+- The goal of this refactor is explainability, separation of concerns, and easier testing.
+- Redis is now wired into the project as an optional cache layer.
+- `GET /api/v1/clothes` uses Redis list caching when Redis is available.
+- Create/update/delete on clothes will invalidate the clothes list cache.
+- `GET /health` also shows whether Redis is currently reachable.
+- `GET /api/v1/clothes` now returns an `X-Cache` response header:
+  `MISS` means data came from MySQL and was written into Redis.
+  `HIT` means data was returned directly from Redis.
 
-这两个没装前，你可以先读代码结构；环境装好后再跑接口。
+## How To Verify Redis
+
+1. Start the backend.
+2. Open `http://localhost:8000/health` and confirm `redis_connected` is `true`.
+3. Call `GET /api/v1/clothes` in Swagger or the browser network panel.
+4. Check the `X-Cache` header:
+   first request should usually be `MISS`
+   second request should usually be `HIT`

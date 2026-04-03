@@ -12,6 +12,10 @@ class ClothesCreate(ClothesBase):
     pass
 
 
+class ClothesBatchCreate(BaseModel):
+    items: list[ClothesCreate]
+
+
 class ClothesUpdate(BaseModel):
     name: str | None = None
     category: str | None = None

@@ -23,6 +23,15 @@ def create_clothes(db: Session, payload: ClothesCreate) -> Clothes:
     return clothes
 
 
+def create_clothes_batch(db: Session, payloads: list[ClothesCreate]) -> list[Clothes]:
+    clothes_items = [Clothes(**payload.model_dump()) for payload in payloads]
+    db.add_all(clothes_items)
+    db.commit()
+    for clothes in clothes_items:
+        db.refresh(clothes)
+    return clothes_items
+
+
 def update_clothes(db: Session, clothes: Clothes, payload: ClothesUpdate) -> Clothes:
     update_data = payload.model_dump(exclude_unset=True)
 

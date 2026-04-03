@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.router import api_router
 from app.core.config import settings
 from app.db.base import Base
+from app.db.redis import redis_cache
 from app.db.session import engine
 
 app = FastAPI(title=settings.app_name, debug=settings.app_debug)
@@ -18,8 +19,11 @@ app.add_middleware(
 
 
 @app.get("/health")
-def health_check() -> dict[str, str]:
-    return {"status": "ok"}
+def health_check() -> dict[str, str | bool]:
+    return {
+        "status": "ok",
+        "redis_connected": redis_cache.ping(),
+    }
 
 
 @app.on_event("startup")

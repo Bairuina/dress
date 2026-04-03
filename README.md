@@ -13,6 +13,7 @@ Front-end and back-end separated scaffold for an outfit styling and digital ward
 ```text
 frontend/
 backend/
+docs/
 ```
 
 ## Frontend
@@ -46,4 +47,10 @@ API docs: `http://localhost:8000/docs`
 - The backend currently exposes `/health` and full CRUD for `/api/v1/clothes`.
 - The backend creates the `clothes` table on startup if it does not exist yet.
 - The frontend already includes API wiring, a wardrobe list, and a create form.
-- Backend learning notes: [backend/README.md](backend/README.md)
+- Redis is now connected locally and used as a cache layer for the clothes list endpoint.
+- You can verify Redis by opening `http://localhost:8000/health` and checking `redis_connected: true`.
+- You can verify cache hits by calling `GET /api/v1/clothes` twice and checking the response header `X-Cache`:
+  first request is usually `MISS`, next request is usually `HIT`.
+- Frontend architecture notes: [frontend/README.md](frontend/README.md)
+- Backend architecture notes: [backend/README.md](backend/README.md)
+- Product design notes: [docs/product-design.md](docs/product-design.md)

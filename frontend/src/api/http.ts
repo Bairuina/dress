@@ -1,7 +1,10 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000/api/v1';
+const ACCESS_TOKEN_STORAGE_KEY = 'dress_access_token';
 
-interface RequestOptions extends RequestInit {
-  query?: Record<string, string | number | boolean | undefined>;
+type QueryValue = string | number | boolean | undefined;
+
+export interface RequestOptions extends RequestInit {
+  query?: Record<string, QueryValue>;
 }
 
 function buildUrl(path: string, query?: RequestOptions['query']) {
@@ -20,11 +23,13 @@ function buildUrl(path: string, query?: RequestOptions['query']) {
 
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { query, headers, body, ...rest } = options;
+  const accessToken = window.localStorage.getItem(ACCESS_TOKEN_STORAGE_KEY);
 
   const response = await fetch(buildUrl(path, query), {
     ...rest,
     headers: {
       'Content-Type': 'application/json',
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       ...headers,
     },
     body,
@@ -37,7 +42,19 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   return response.json() as Promise<T>;
 }
 
-export const apiClient = {
+export function setAccessToken(token: string) {
+  window.localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, token);
+}
+
+export function clearAccessToken() {
+  window.localStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
+}
+
+export function getAccessToken() {
+  return window.localStorage.getItem(ACCESS_TOKEN_STORAGE_KEY);
+}
+
+export const httpClient = {
   get<T>(path: string, options?: Omit<RequestOptions, 'method' | 'body'>) {
     return request<T>(path, { ...options, method: 'GET' });
   },
